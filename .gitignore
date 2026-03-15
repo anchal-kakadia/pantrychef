@@ -44,6 +44,9 @@ yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
 
+# Vite cache
+.vite/
+
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
@@ -179,6 +182,12 @@ dist
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Alembic - keep alembic.ini but ignore local override
+alembic/versions/*.pyc
+
+# FastAPI / Uvicorn
+*.pid
 
 # C extensions
 *.so
