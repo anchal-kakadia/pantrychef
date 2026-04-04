@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
+from app.routers.pantry import router as pantry_router
 from app.config import settings
 from app.database import engine
 from app.routers.users import router as users_router 
@@ -34,8 +34,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# After app is created, before the health endpoint:
 app.include_router(users_router)
+app.include_router(pantry_router)
 
 @app.get("/health")
 async def health():
