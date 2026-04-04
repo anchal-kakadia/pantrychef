@@ -147,8 +147,6 @@ Each test runs with a fresh database state.
 ## Documentation
 
 - [Software Requirements Document](docs/requirements.md)
-- [System Design Document](docs/PantryChef_Design_Document.docx)
-
 ---
 
 ## Build Status
