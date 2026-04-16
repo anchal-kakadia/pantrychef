@@ -70,7 +70,7 @@ pantrychef/
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/yourusername/pantrychef.git
+git clone https://github.com/anchal-kakadia/pantrychef.git
 cd pantrychef
 
 # 2. Create and activate virtual environment
