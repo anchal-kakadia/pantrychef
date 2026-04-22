@@ -108,7 +108,17 @@ async def update_preferences(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    current_user.dietary_prefs = prefs.model_dump()
+    # model_dump() gives us a clean dict — same exclude_unset=True
+    # pattern as pantry PATCH so only sent fields update
+    updates = prefs.model_dump(exclude_unset=True)
+
+    # Merge with existing prefs rather than replace entirely.
+    # If user previously set allergens and now only updates spice_level,
+    # their allergens are preserved.
+    existing = dict(current_user.dietary_prefs or {})
+    existing.update(updates)
+    current_user.dietary_prefs = existing
+
     await db.commit()
     await db.refresh(current_user)
     return current_user
