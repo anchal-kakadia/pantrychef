@@ -1,7 +1,14 @@
-import pytest
-from httpx import ASGITransport, AsyncClient
+from unittest.mock import AsyncMock, patch
 
-from app.main import app
+import pytest
+
+
+@pytest.fixture(autouse=True)
+def mock_llm():
+    """Auto-mock OpenAI for every pantry test — no real API calls, fast."""
+    with patch("app.services.shelf_life.infer_shelf_life_days",
+               new=AsyncMock(return_value=7)):
+        yield
 
 
 async def _register_and_login(client) -> str:
@@ -31,8 +38,20 @@ async def test_add_item(auth_client):
     data = res.json()
     assert data["name"] == "Chicken Breast"
     assert data["name_normalised"] == "chicken breast"
-    assert data["expiry_date"] is None      # no expiry provided
-    assert data["inferred_expiry"] is None  # LLM not wired yet
+    assert data["expiry_date"] is None           # no expiry provided
+    assert data["inferred_expiry"] is not None   # LLM inferred it
+
+
+async def test_add_item_with_explicit_expiry_skips_llm(auth_client):
+    """When user provides expiry_date, inferred_expiry stays None."""
+    res = await auth_client.post("/pantry/items", json={
+        "name": "Bread",
+        "expiry_date": "2026-12-31",
+    })
+    assert res.status_code == 201
+    data = res.json()
+    assert data["expiry_date"] == "2026-12-31"
+    assert data["inferred_expiry"] is None
 
 
 async def test_list_items(auth_client):
