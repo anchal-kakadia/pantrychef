@@ -42,7 +42,13 @@ class TokenResponse(BaseModel):
 
 
 class DietaryPrefs(BaseModel):
-    """Shape of the dietary_prefs JSONB field."""
-    high_protein: bool = False
-    spice_level: int = 3          # 1–5
-    allergens: list[str] = []
+    """
+    All fields optional on PATCH — client sends only what changed.
+    Existing prefs are merged server-side, not replaced.
+    """
+    high_protein: bool | None = None
+    spice_level: int | None = None    # 1–5
+    allergens: list[str] | None = None
+
+    model_config = {"extra": "forbid"}  # reject unknown fields
+    
