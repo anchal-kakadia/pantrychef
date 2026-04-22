@@ -8,6 +8,8 @@ from app.models.models import User
 from app.routers.users import get_current_user
 from app.schemas.pantry import PantryItemCreate, PantryItemResponse, PantryItemUpdate
 from app.services import pantry as pantry_service
+from app.services.pantry import _normalise
+from app.services.shelf_life import compute_inferred_expiry, get_shelf_life_days
 
 router = APIRouter(prefix="/pantry", tags=["pantry"])
 
@@ -42,8 +44,17 @@ async def add_item(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    # Step 7 will intercept here to call the LLM when expiry_date is None
-    return await pantry_service.create_item(db, current_user.id, payload)
+    # Create the item first
+    item = await pantry_service.create_item(db, current_user.id, payload)
+
+    # If user didn't provide expiry, infer it via LLM + cache
+    if payload.expiry_date is None:
+        days = await get_shelf_life_days(db, item.name_normalised)
+        item.inferred_expiry = compute_inferred_expiry(item.added_at.date(), days)
+        await db.commit()
+        await db.refresh(item)
+
+    return item
 
 
 @router.get("/items/expiring-soon", response_model=list[PantryItemResponse])
